@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Witek @copyright 2018 - implementacja algorytmu a*
+
+import math
+import numpy
+
+fileName = "grid.txt"
+
+grid = numpy.genfromtxt(fileName, delimiter=" ")
+
+
+class Points(object):
+    def __init__(self, x, y, f, g, parent):
+        self.x = x  # x: współrzędna x
+        self.y = y  # y: współrzędna y
+        self.f = f  # f: koszt dotarcia do celu (w sumie)
+        self.g = g  # g: składowa kosztu f, odległość aktualnych współrzędnych od puntku początkowego, 1 kratka - 1 pkt
+        self.parent = parent
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+
+openList = []  # współrzędne do ekspansji
+closedList = []  # współrzędne tworzące drogę do celu
+neighbourList = []  # współrzędne sąsiadów
+
+currentPoint = Points(0, 0, 0, 0, None)
+openList.append(currentPoint)
+
+while not currentPoint.x == grid.__len__() - 1 or not currentPoint.y == grid.__len__() - 1:  # wykonuj dopóki współrzędne current > współrzędnych celu (> rozmiar siatki)
+
+    if openList.__len__() == 0:
+        print("Nie ma możliwości wyznaczenia trasy")
+        quit()
+
+    else:
+        minf = min(openList, key=lambda x: x.f)
+        currentPoint = minf
+        currentPoint.g = closedList.__len__()
+        closedList.append(currentPoint)
+        del openList[openList.index(currentPoint)]
+        if currentPoint.x + 1 > grid.__len__() - 1 or grid[currentPoint.x + 1][currentPoint.y] == 5:
+            pass
+        else:
+            neighbourList.append(Points(currentPoint.x + 1, currentPoint.y, 0, 0, currentPoint))
+
+        if currentPoint.y + 1 > grid.__len__() - 1 or grid[currentPoint.x][currentPoint.y + 1] == 5:
+            pass
+        else:
+            neighbourList.append(Points(currentPoint.x, currentPoint.y + 1, 0, 0, currentPoint))
+
+        if currentPoint.x - 1 < 0 or grid[currentPoint.x - 1][currentPoint.y] == 5:
+            pass
+        else:
+            neighbourList.append(Points(currentPoint.x - 1, currentPoint.y, 0, 0, currentPoint))
+
+        if currentPoint.y - 1 < 0 or grid[currentPoint.x][currentPoint.y - 1] == 5:
+            pass
+        else:
+            neighbourList.append(Points(currentPoint.x, currentPoint.y - 1, 0, 0, currentPoint))
+
+        for elements in neighbourList:
+            if elements in closedList:  # jeśli sąsiad jest w liście zamkniętej, przejdź do kolejnego sąsiada
+                continue
+            elif elements.g > currentPoint.g + 1 or elements not in openList:  # sprawdź czy current nie jest na liście otwartej lub nowy koszt g jest mniejszy
+                elements.f = currentPoint.g + 1 + math.sqrt((elements.x - grid.__len__()) ** 2 + (
+                            elements.y - grid.__len__()) ** 2)  # jeśli warunek prawdziwy, to aktualizuj f
+                openList.append(elements)
+
+endPoint = grid[currentPoint.x][currentPoint.y] = 3
+path = currentPoint.parent
+grid[path.x][path.y] = 3
+
+while not path.x == 0 or not path.y == 0:  # przechodź do kolejnych rodziców od węzła końcowego do startowego
+    path = path.parent
+    grid[path.x][path.y] = 3
+
+grid[0][0] = 3
+print(grid)
+
